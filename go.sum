@@ -1,5 +1,7 @@
 github.com/approvals/go-approval-tests v0.0.0-20220217205408-02c48c44c897 h1:JZCuWSnSnuJguAi7QPILNrnuoUtUenU67vxMqmSTOWI=
 github.com/approvals/go-approval-tests v0.0.0-20220217205408-02c48c44c897/go.mod h1:PJOqSY8IofNv3heAD6k8E7EfFS6okiSS9bSAasaAUME=
+github.com/gomarkdown/markdown v0.0.0-20220114203417-14399d5448c4 h1:6GlsnS3GQYfrJZTJEUsheoyLE6kLXQJDvQKIKxgL/9Q=
+github.com/gomarkdown/markdown v0.0.0-20220114203417-14399d5448c4/go.mod h1:JDGcbDT52eL4fju3sZ4TeHGsQwhG9nbDV21aMyhwPoA=
 github.com/kisielk/errcheck v1.6.0 h1:YTDO4pNy7AUN/021p+JGHycQyYNIyMoenM1YDVK6RlY=
 github.com/kisielk/errcheck v1.6.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
