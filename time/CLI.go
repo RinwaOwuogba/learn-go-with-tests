@@ -11,33 +11,26 @@ import (
 
 const PlayerPrompt = "Please enter the number of players: "
 
+type Game interface {
+	Start(numberOfPlayers int)
+	Finish(winner string)
+}
+
 type CLI struct {
-	playerStore PlayerStore
-	in          *bufio.Scanner
-	out         io.Writer
-	alerter     BlindAlerter
+	in   *bufio.Scanner
+	out  io.Writer
+	game Game
 }
 
 func (c *CLI) PlayPoker() {
 	fmt.Fprint(c.out, PlayerPrompt)
 
 	numberOfPlayers, _ := strconv.Atoi(c.readLine())
+	c.game.Start(numberOfPlayers)
 
-	c.scheduleBlindAlerts(numberOfPlayers)
-
-	userInput := c.readLine()
-	c.playerStore.RecordWin(extractWinner(userInput))
-}
-
-func (c *CLI) scheduleBlindAlerts(numberOfPlayers int) {
-	blindIncrement := time.Duration(5+numberOfPlayers) * time.Minute
-
-	blinds := []int{100, 200, 300, 400, 500, 600, 800, 1000, 2000, 4000, 8000}
-	blindTime := 0 * time.Second
-	for _, blind := range blinds {
-		c.alerter.ScheduleAlert(blindTime, blind)
-		blindTime = blindTime + blindIncrement
-	}
+	winnerInput := c.readLine()
+	winner := extractWinner(winnerInput)
+	c.game.Finish(winner)
 }
 
 func extractWinner(userInput string) string {
@@ -49,11 +42,34 @@ func (c *CLI) readLine() string {
 	return c.in.Text()
 }
 
-func NewCLI(store PlayerStore, in io.Reader, out io.Writer, alerter BlindAlerter) *CLI {
+func NewCLI(in io.Reader, out io.Writer, game Game) *CLI {
 	return &CLI{
-		playerStore: store,
-		in:          bufio.NewScanner(in),
-		out:         out,
-		alerter:     alerter,
+		in:   bufio.NewScanner(in),
+		out:  out,
+		game: game,
 	}
+}
+
+type TexasHoldem struct {
+	store   PlayerStore
+	alerter BlindAlerter
+}
+
+func (t *TexasHoldem) Start(numberOfPlayers int) {
+	blindIncrement := time.Duration(5+numberOfPlayers) * time.Minute
+
+	blinds := []int{100, 200, 300, 400, 500, 600, 800, 1000, 2000, 4000, 8000}
+	blindTime := 0 * time.Second
+	for _, blind := range blinds {
+		t.alerter.ScheduleAlert(blindTime, blind)
+		blindTime = blindTime + blindIncrement
+	}
+}
+
+func (t *TexasHoldem) Finish(name string) {
+	t.store.RecordWin(name)
+}
+
+func NewTexasHoldemGame(alerter BlindAlerter, store PlayerStore) Game {
+	return &TexasHoldem{store, alerter}
 }
