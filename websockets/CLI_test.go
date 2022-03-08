@@ -165,13 +165,16 @@ func checkSchedulingCases(cases []scheduledAlert, t *testing.T, alerter *SpyBlin
 type GameSpy struct {
 	StartedWith  int
 	FinishedWith string
-	StartCalled  bool
-	StopCalled   bool
+	BlindAlert   []byte
+
+	StartCalled bool
+	StopCalled  bool
 }
 
-func (g *GameSpy) Start(numberOfPlayers int, alertsDestination io.Writer) {
+func (g *GameSpy) Start(numberOfPlayers int, out io.Writer) {
 	g.StartCalled = true
 	g.StartedWith = numberOfPlayers
+	out.Write(g.BlindAlert)
 }
 
 func (g *GameSpy) Finish(winner string) {
@@ -194,15 +197,25 @@ func userSends(messages ...string) io.Reader {
 
 func assertGameStartedWith(t testing.TB, game *GameSpy, want int) {
 	t.Helper()
-	if game.StartedWith != want {
+
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.StartedWith == want
+	})
+
+	if !passed {
 		t.Errorf("wanted Start called with %d but got %d", want, game.StartedWith)
 	}
 }
 
-func assertGameFinishCalledWith(t testing.TB, game *GameSpy, want string) {
+func assertGameFinishCalledWith(t testing.TB, game *GameSpy, winner string) {
 	t.Helper()
-	if game.FinishedWith != want {
-		t.Errorf("got winner %q wanted %q", game.FinishedWith, want)
+
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.FinishedWith == winner
+	})
+
+	if !passed {
+		t.Errorf("got winner %q wanted %q", game.FinishedWith, winner)
 	}
 }
 
@@ -218,4 +231,14 @@ func assertGameNotStopped(t testing.TB, game *GameSpy) {
 	if game.StopCalled {
 		t.Error("game should not have stopped")
 	}
+}
+
+func retryUntil(d time.Duration, f func() bool) bool {
+	deadline := time.Now().Add(d)
+	for time.Now().Before(deadline) {
+		if f() {
+			return true
+		}
+	}
+	return false
 }
